@@ -1,5 +1,3 @@
-# Code for ETL operations on Bank data
-
 # Importing the required libraries
 import numpy as np
 import pandas as pd
@@ -7,16 +5,32 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import sqlite3
 import requests
+import os 
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+
+url = 'https://web.archive.org/web/20230908091635/https://en.wikipedia.org/wiki/List_of_largest_banks'
+table_attribs = ["Bank_Name", "MC_USD_Billion"]
+db_name = os.path.join(project_root, 'database', 'Banks.db')
+table_name = 'Largest_banks'
+output_csv_path = os.path.join(project_root, 'data', 'Largest_banks_by_MC.csv')
+exchange_csv = os.path.join(project_root, 'data', 'exchange_rate.csv')
+log_file_path = os.path.join(project_root, 'logs', 'etl_project_log.txt')
 
 
 def log_progress(message):
     ''' This function logs the mentioned message of a given stage of the
     code execution to a log file. Function returns nothing'''
 
+
+    os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+    
     timestamp_format = '%Y-%m-%d %H:%M:%S'
     now = datetime.now()
     timestamp = now.strftime(timestamp_format)
-    with open("./etl_project_log.txt", "a") as f:
+    
+    with open(log_file_path, "a") as f:
         f.write(timestamp + " : " + message + "\n")
 
 
@@ -33,18 +47,14 @@ def extract(url, table_attribs):
 
     for row in rows:
         col = row.find_all('td')
-        if len(col) > 2:  # Ensure row has at least 3 columns to avoid errors
-            # Check if the second column (Bank Name) has a link and
-            # the third column (Market Cap) is not empty/a dash.
+        if len(col) > 2:
             if col[1].find('a') is not None and '—' not in col[2].text:
-                # --- FINAL FIX: Use col[1].text.strip() for robust name extraction ---
                 data_dict = {"Bank_Name": col[1].text.strip(),
                              "MC_USD_Billion": col[2].text.strip()
                              }
                 df1 = pd.DataFrame(data_dict, index=[0])
                 df = pd.concat([df, df1], ignore_index=True)
 
-    # typecasting to float
     Mcap_list = df["MC_USD_Billion"].tolist()
     Mcap_list = [float(str(x).replace(",", "")) for x in Mcap_list]
     df["MC_USD_Billion"] = Mcap_list
@@ -73,6 +83,8 @@ def transform(df, csv_path):
 def load_to_csv(df, output_path):
     ''' This function saves the final data frame as a CSV file in
     the provided path. Function returns nothing.'''
+    # Ensure the output directory exists before writing the file
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df.to_csv(output_path, index=False)
 
 
@@ -89,15 +101,7 @@ def run_query(query_statement, sql_connection):
     query_output = pd.read_sql(query_statement, sql_connection)
     print(query_output)
 
-
-
-url = 'https://web.archive.org/web/20230908091635/https://en.wikipedia.org/wiki/List_of_largest_banks'
-table_attribs = ["Bank_Name", "MC_USD_Billion"]
-db_name = 'Banks.db'
-table_name = 'Largest_banks'
-output_csv_path = './Largest_banks_by_MC.csv'  # Changed output name for clarity
-exchange_csv = './exchange_rate.csv'
-
+# --- ETL Process ---
 log_progress('Preliminaries complete. Initiating ETL process')
 
 df = extract(url, table_attribs)
@@ -113,6 +117,7 @@ log_progress('Data transformation complete. Initiating loading process')
 load_to_csv(df, output_csv_path)
 log_progress('Data saved to CSV file')
 
+os.makedirs(os.path.dirname(db_name), exist_ok=True)
 sql_connection = sqlite3.connect(db_name)
 log_progress('SQL Connection initiated.')
 
