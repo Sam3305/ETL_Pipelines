@@ -11,25 +11,6 @@ This project is a practical demonstration of a complete **ETL (Extract, Transfor
 -   **Data Verification**: Automatically runs sample SQL queries on the newly created database to verify the data integrity and demonstrate usability.
 
 ## Folder Structure
-Of course. Here is a complete, raw README.md file tailored for your project. You can copy this entire block of text and paste it directly into your README.md file.
-
-It includes all the sections we discussed, with the folder structure and commands updated to perfectly match your project.
-
-Markdown
-
-# Web Scraping ETL Pipeline for Bank Data 🏦
-
-This project is a practical demonstration of a complete **ETL (Extract, Transform, Load)** pipeline built in Python. It extracts data on the world's largest banks from a Wikipedia archive, transforms the data by converting financial figures into multiple currencies, and loads it into a CSV file and a local SQLite database for querying and analysis.
-
-## Features
-
--   **Data Extraction**: Scrapes bank names and market capitalization from an archived Wikipedia page using `requests` and `BeautifulSoup`.
--   **Data Transformation**: Reads exchange rates from a local CSV and converts market capitalization from USD to British Pounds (GBP), Euros (EUR), and Indian Rupees (INR) using `pandas` and `numpy`.
--   **Dual Data Loading**: Loads the transformed data into both a structured **SQLite database** and a flat **CSV file**.
--   **Automated Logging**: Tracks the start and end of each ETL stage with timestamps in a dedicated log file.
--   **Data Verification**: Automatically runs sample SQL queries on the newly created database to verify the data integrity and demonstrate usability.
-
-## Folder Structure
 ```
 ETL_Pipelines/
 ├── .gitignore
